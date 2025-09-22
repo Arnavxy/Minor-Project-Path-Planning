@@ -1,0 +1,10 @@
+# Build directories
+build/
+install/
+log/
+
+# Ignore embedded git repositories
+src/px4_msgs/
+
+# Ignore VSCode files
+.vscode/
