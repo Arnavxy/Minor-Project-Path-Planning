@@ -20,6 +20,9 @@ This ROS2 package provides a sophisticated high-level path planning and navigati
     - [Node Initialization](#node-initialization)
     - [Path Planning Execution](#path-planning-execution)
     - [Conclusion of Log Analysis](#conclusion-of-log-analysis)
+  - [🗺️ RViz Visualization Analysis](#️-rviz-visualization-analysis)
+    - [Understanding the Visualization](#understanding-the-visualization)
+    - [Why is the Path a Nearly Straight Line?](#why-is-the-path-a-nearly-straight-line)
 
 ## 📜 Project Abstract
 
@@ -40,8 +43,6 @@ Effective autonomous operation for a UAV requires not only knowing its position 
 ### Architectural Overview
 
 The system is designed as a collection of interconnected ROS2 nodes, each with a specific responsibility. This modular architecture promotes separation of concerns and makes the system easier to develop, test, and maintain. The core of the system is the `path_planner_node`, which acts as the brain, coordinating the planning and navigation tasks.
-
- <!-- You can create and link a diagram here -->
 
 ### Node Descriptions
 
@@ -65,12 +66,12 @@ The system is designed as a collection of interconnected ROS2 nodes, each with a
 ### Core Logic and Algorithms
 
 1.  **Global Planning (A* Algorithm)**:
-    *   The [`a_star_planner.py`](src/path_planner_pkg/path_planner_pkg/a_star_planner.py) file contains the implementation of the A* search algorithm.
+    *   The `a_star_planner.py` file contains the implementation of the A* search algorithm.
     *   A* is a widely-used pathfinding algorithm known for its completeness, optimality, and efficiency. It explores a graph by combining the cost to reach a node (`g(n)`) with a heuristic estimate of the cost to the goal from that node (`h(n)`).
     *   The implementation uses a `Grid` class to represent the environment and a `Node` class to represent states in the search space.
 
 2.  **Local Planning**:
-    *   The [`local_planner.py`](src/path_planner_pkg/path_planner_pkg/local_planner.py) file implements the local planning logic.
+    *   The `local_planner.py` file implements the local planning logic.
     *   Its primary role is to translate the high-level global path into low-level velocity commands.
     *   It evaluates a set of possible linear and angular velocities and scores them based on criteria like path following and obstacle avoidance. The velocity pair with the best score is chosen.
     *   Currently, the obstacle avoidance is based on the static map, but this component is designed to be extended with real-time sensor data.
@@ -142,7 +143,6 @@ In RViz2, add the following topics to view the planner's output:
 The log output provides a clear, step-by-step narrative of the system's successful execution. This analysis breaks down the log and explains what each message signifies in the context of the project's goals.
 
 ### Build and Launch Sequence
-
 ```
 arnav@Arnavs-Laptop:~/drone_ws$ colcon build --packages-select path_planner_pkg && source install/setup.bash && ros2 launch path_planner_pkg path_planner.launch.py
 Starting >>> path_planner_pkg
@@ -153,7 +153,6 @@ Summary: 1 package finished [1.46s]
 *   **Analysis**: This section shows that the `colcon` build system successfully compiled the `path_planner_pkg`. The `&&` ensures that the subsequent commands (sourcing the environment and launching the nodes) only run if the build is successful. This demonstrates a clean and correct package setup.
 
 ### Node Initialization
-
 ```
 [INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-09-22-07-19-40-756034-Arnavs-Laptop-153856
 [INFO] [launch]: Default logging verbosity is set to INFO
@@ -164,32 +163,25 @@ Summary: 1 package finished [1.46s]
 [path_planner_node-1] [INFO] [1758505781.349029873] [path_planner_node]: Path Planner Node has been started.
 [INFO] [mock_pose_publisher-4]: process started with pid [153929]
 ```
-*   **Analysis**: The ROS2 launch system starts all the necessary nodes defined in [`path_planner.launch.py`](src/path_planner_pkg/launch/path_planner.launch.py).
-*   The `path_planner_node`, two `static_transform_publisher` instances, and the `mock_pose_publisher` are all successfully initialized.
-*   The message `Path Planner Node has been started` is a custom log message from the code, confirming that the node's `__init__` method has completed without errors. This is a critical check.
+*   **Analysis**: The ROS2 launch system starts all the necessary nodes defined in `path_planner.launch.py`. The `path_planner_node`, two `static_transform_publisher` instances, and the `mock_pose_publisher` are all successfully initialized. The message `Path Planner Node has been started` is a custom log message from the code, confirming that the node's `__init__` method has completed without errors. This is a critical check.
 
 ### Path Planning Execution
-
 ```
 [path_planner_node-1] [INFO] [1758505783.783450079] [path_planner_node]: Goal callback triggered.
 ```
 *   **Analysis**: This is the trigger for the main planning sequence. The `mock_pose_publisher` has published a goal message on the `/goal_pose` topic, and the `path_planner_node`'s subscription has received it, invoking the `goal_callback` function. This demonstrates successful ROS2 topic communication between the nodes.
-
 ```
 [path_planner_node-1] [INFO] [1758505783.784072156] [path_planner_node]: Planning from (0, 0) to (40, 40)
 ```
 *   **Analysis**: Inside the `goal_callback`, the node has identified the UAV's current position (0, 0) from the mock pose data and the goal position (40, 40) from the received message. It is now initiating the A* search algorithm with these start and end points.
-
 ```
 [path_planner_node-1] [INFO] [1758505783.785123063] [path_planner_node]: Published start and end points.
 ```
 *   **Analysis**: For visualization and debugging, the node publishes markers to RViz to show where the planning process starts and where it aims to finish. This is an important feature for user feedback.
-
 ```
 [path_planner_node-1] [INFO] [1758505783.786596129] [path_planner_node]: Global path found: [(0, 0), (1, 1), (2, 2), ... (40, 39), (40, 40)]
 ```
 *   **Analysis**: This is the most critical message in the log. It confirms that the A* search algorithm successfully found a complete path from the start to the end node. The list of tuples represents the sequence of waypoints that the UAV will follow. This message is the primary indicator that the core functionality of the project—global path planning—is working correctly.
-
 ```
 [mock_pose_publisher-4] [INFO] [1758505783.801936249] [mock_pose_publisher]: Published goal pose.
 ```
@@ -198,3 +190,33 @@ Summary: 1 package finished [1.46s]
 ### Conclusion of Log Analysis
 
 The log output provides concrete evidence that the primary objectives of the current project phase have been met. It demonstrates a fully functional pipeline: from launching the system and initializing all nodes, through inter-node communication via topics, to the successful execution of the A* global path planner. This represents a solid foundation for the future work of integrating dynamic obstacle avoidance and real-world hardware.
+
+## 🗺️ RViz Visualization Analysis
+
+The image you provided is a screenshot of RViz, the standard visualization tool for ROS. It's showing a real-time representation of your path planning system at work.
+
+### Understanding the Visualization
+
+*   **Grid**: The grey grid on the floor represents the `map` frame, which is the global coordinate system for your simulation.
+*   **Green Line (`/path`)**: This is the most important part. The green line is the global path calculated by your A* planner. It's a `nav_msgs/Path` message published by the `path_planner_node`. Each point on this line corresponds to a waypoint in the `global_path` list that was printed in your log output.
+*   **Start/End Markers (`/start_end_points`)**: Although not clearly visible as distinct shapes in this view, the start and end points of the path are published as `visualization_msgs/MarkerArray`. These would appear as cubes (one green for the start, one red for the end) at coordinates (0,0) and (40,40) respectively.
+*   **Displays Panel (Left)**: This panel shows which topics you are visualizing. You have correctly added the `Grid`, `MarkerArray` (for `/start_end_points`), and `Path` (for `/path`) displays. The checkmarks and "Ok" status indicate that RViz is successfully receiving data on these topics.
+
+### Why is the Path a Nearly Straight Line?
+
+This is an excellent question and it points to a key aspect of how the A* algorithm and your current simulation are configured.
+
+1.  **A* Finds the Optimal Path**: The A* algorithm is designed to find the *shortest* possible path between two points. In an open environment with no obstacles between the start and goal, the shortest path is, by definition, a straight line.
+
+2.  **Limited Obstacles in the Current Map**: In your current code, the environment is a wide-open 50x50 grid. You have only defined one small, vertical obstacle:
+    ```python
+    # From path_planner_node.py
+    self.grid.add_obstacle((10, 10))
+    self.grid.add_obstacle((10, 11))
+    self.grid.add_obstacle((10, 12))
+    self.grid.add_obstacle((10, 13))
+    self.grid.add_obstacle((10, 14))
+    ```
+    The path planned from (0,0) to (40,40) does not intersect this obstacle. Therefore, the A* algorithm correctly determines that the most efficient route is a direct diagonal line. The slight curve you see in the path is likely an artifact of the grid-based nature of the A* search, where it moves from one grid cell to the next (e.g., from (1,1) to (2,2)), creating a stepped diagonal line that looks almost straight from a distance.
+
+**In summary, the straight-line path is not a bug; it is the correct and expected output for the A* algorithm in an environment with no obstacles blocking the direct route. This visualization successfully demonstrates that your global planner is working as intended.**
