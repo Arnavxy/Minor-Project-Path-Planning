@@ -15,9 +15,12 @@ This ROS2 package provides a sophisticated high-level 3D path planning and navig
   - [🚀 Future Work and Development Roadmap](#-future-work-and-development-roadmap)
   - [⚙️ Setup and Installation](#️-setup-and-installation)
   - [🎮 How to Run the Simulation](#-how-to-run-the-simulation)
+  - [📊 Build and Execution Logs](#-build-and-execution-logs)
   - [📊 Visualization and Analysis](#-visualization-and-analysis)
     - [Start Point](#start-point)
     - [Goal Point](#goal-point)
+    - [Obstacles](#obstacles)
+    - [Path](#path)
     - [RViz Visualization](#rviz-visualization)
 
 ## 📜 Project Abstract
@@ -139,6 +142,55 @@ In RViz2, add the following topics to view the planner's output:
 *   Add a `MarkerArray` display and subscribe to the `/scoring_grid` topic.
 *   Add a `Marker` display and subscribe to the `/visualization_marker` topic.
 
+## 📊 Build and Execution Logs
+
+The following logs demonstrate the successful build and execution of the path planning system.
+
+### Build Log
+
+```
+arnav@Arnavs-Laptop:~/drone_ws$ colcon build
+Starting >>> px4_msgs
+Finished <<< px4_msgs [2.50s]                    
+Starting >>> path_planner_pkg
+Finished <<< path_planner_pkg [1.73s]          
+
+Summary: 2 packages finished [4.39s]
+```
+This log shows that the `colcon build` command successfully compiled both the `px4_msgs` and `path_planner_pkg` packages.
+
+### Execution Log
+
+```
+arnav@Arnavs-Laptop:~/drone_ws$ . install/setup.bash && ros2 launch path_planner_pkg path_planner.launch.py
+[INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-09-24-14-26-15-588004-Arnavs-Laptop-12109
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [path_planner_node-1]: process started with pid [12113]
+[INFO] [static_transform_publisher-2]: process started with pid [12114]
+[INFO] [static_transform_publisher-3]: process started with pid [12115]
+[static_transform_publisher-2] [WARN] [1758704175.742244832] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-3] [WARN] [1758704175.742261854] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1758704175.787729309] [static_transform_publisher]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'map' to 'base_link'
+[static_transform_publisher-3] [INFO] [1758704175.787729409] [static_transform_publisher_map_to_odom]: Spinning until stopped - publishing transform
+[static_transform_publisher-3] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-3] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-3] from 'map' to 'odom'
+[path_planner_node-1] [INFO] [1758704176.564729061] [path_planner_node]: Path Planner Node has been started.
+[INFO] [mock_pose_publisher-4]: process started with pid [12179]
+[path_planner_node-1] [INFO] [1758704180.304247492] [path_planner_node]: Goal callback triggered.
+[path_planner_node-1] [INFO] [1758704180.304863808] [path_planner_node]: Planning from (0, 0, 0) to (40, 40, 30)
+[path_planner_node-1] [INFO] [1758704180.305735827] [path_planner_node]: Published start and end points.
+[path_planner_node-1] [INFO] [1758704180.307682729] [path_planner_node]: Global path found: [(0, 0, 0), (1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5), (6, 6, 6), (7, 7, 7), (8, 8, 8), (9, 9, 9), (10, 10, 10), (11, 11, 11), (12, 12, 12), (13, 13, 13), (14, 14, 14), (15, 15, 15), (16, 16, 16), (17, 17, 17), (18, 18, 18), (19, 19, 19), (20, 20, 20), (21, 21, 21), (22, 22, 22), (23, 23, 23), (24, 24, 24), (25, 25, 25), (26, 26, 26), (27, 27, 27), (28, 28, 28), (29, 29, 29), (30, 30, 30), (31, 31, 30), (32, 32, 30), (33, 33, 30), (34, 34, 30), (35, 35, 30), (36, 36, 30), (37, 37, 30), (38, 38, 30), (39, 39, 30), (40, 40, 30)]
+[mock_pose_publisher-4] [INFO] [1758704180.332588202] [mock_pose_publisher]: Published goal pose.
+```
+This log shows the output of launching the system. Key events include:
+- The `path_planner_node`, `mock_pose_publisher`, and `static_transform_publisher` nodes are all started successfully.
+- The `path_planner_node` receives a goal, plans a path from (0, 0, 0) to (40, 40, 30), and publishes the resulting path.
+- The `mock_pose_publisher` successfully publishes the goal pose.
+
 ## 📊 Visualization and Analysis
 
 ### Start Point
@@ -147,5 +199,12 @@ In RViz2, add the following topics to view the planner's output:
 ### Goal Point
 ![Goal Point](goal.png)
 
+### Obstacles
+![Obstacles](obstacle.png)
+
+### Path
+![Path](path.png)
+
 ### RViz Visualization
 ![RViz Visualization](rviz.png)
+![RViz Visualization 2](rviz2.png)
