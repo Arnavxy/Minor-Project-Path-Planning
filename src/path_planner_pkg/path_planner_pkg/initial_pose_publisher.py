@@ -21,8 +21,7 @@ class InitialPosePublisher(Node):
         initial_pose.pose.pose.orientation.w = 1.0
         self.publisher.publish(initial_pose)
         self.get_logger().info('Published initial pose to kickstart the simulation.')
-        # Shutdown after publishing
-        rclpy.shutdown()
+        self.get_logger().info('Published initial pose to kickstart the simulation.')
 
 def main(args=None):
     rclpy.init(args=args)
@@ -30,6 +29,8 @@ def main(args=None):
     # The node will shutdown on its own after publishing
     # We spin just to keep the process alive long enough for the publish to happen
     rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

@@ -60,11 +60,19 @@ def generate_launch_description():
         'launch',
         'path_planner.rviz')
 
+    # Launch PX4 and MAVROS
+    px4_mavros_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_path_planner, 'launch', 'px4_mavros.launch.py')
+        )
+    )
+
     return LaunchDescription([
-        gzserver_cmd,
-        gzclient_cmd,
-        node_robot_state_publisher,
-        spawn_entity,
+        # gzserver_cmd,
+        # gzclient_cmd,
+        # node_robot_state_publisher,
+        # spawn_entity,
+        px4_mavros_launch,
         Node(
             package='path_planner_pkg',
             executable='initial_pose_publisher',

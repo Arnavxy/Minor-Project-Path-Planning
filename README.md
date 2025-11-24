@@ -30,6 +30,10 @@ This ROS2 package provides a sophisticated high-level 3D path planning and navig
     - [ROS2 Topic Analysis](#ros2-topic-analysis)
     - [Gazebo Simulation Log](#gazebo-simulation-log)
   - [🖼️ Visualizations](#️-visualizations)
+  - [🚁 PX4 and MAVROS: The Backbone of Drone Control](#-px4-and-mavros-the-backbone-of-drone-control)
+    - [What is PX4?](#what-is-px4)
+    - [What is MAVROS?](#what-is-mavros)
+  - [📚 Libraries and Dependencies](#-libraries-and-dependencies)
 
 ## 📜 Project Abstract
 
@@ -227,8 +231,7 @@ class PathFollower(Node):
 
         # ... (logic to calculate velocity commands) ...
 
-        self.cmd_vel_publisher.publish(twist_msg)
-```
+        self.cmd_vel_publisher.publish(twist_msg)```
 
 ## ⚙️ Setup and Installation
 
@@ -418,36 +421,25 @@ angular:
 The following is a detailed, annotated log of the Gazebo simulation, showcasing the drone's interaction with the physics-based environment.
 
 ```
-arnav@Arnavs-Laptop:~/drone_ws$ ros2 launch path_planner_pkg path_planner.launch.py use_gazebo:=true
-[INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-09-24-15-30-10-123456-Arnavs-Laptop-13000
-[INFO] [gzserver-1]: process started with pid [13001]
-[INFO] [gzclient-2]: process started with pid [13002]
-[INFO] [robot_state_publisher-3]: process started with pid [13003]
-[INFO] [spawn_entity.py-4]: process started with pid [13004]
-[INFO] [path_planner_node-5]: process started with pid [13005]
-[gzserver-1] [INFO] [Gazebo]: Gazebo Sim booted successfully.
-[gzclient-2] [INFO] [Gazebo]: Gazebo GUI booted successfully.
-[spawn_entity.py-4] [INFO] [spawn_entity]: Spawn Entity started
-[spawn_entity.py-4] [INFO] [spawn_entity]: Spawning entity [drone] at position [0.0, 0.0, 0.1] with orientation [0.0, 0.0, 0.0, 1.0]
-[gzserver-1] [INFO] [Gazebo]: Spawned entity [drone]
-[robot_state_publisher-3] [INFO] [robot_state_publisher]: got segment base_link
-[robot_state_publisher-3] [INFO] [robot_state_publisher]: got segment camera_link
-[robot_state_publisher-3] [INFO] [robot_state_publisher]: got segment camera_optical_link
-[robot_state_publisher-3] [INFO] [robot_state_publisher]: got segment imu_link
-[path_planner_node-5] [INFO] [path_planner_node]: Path Planner Node has been started.
-[path_planner_node-5] [INFO] [path_planner_node]: Waiting for goal...
-[path_planner_node-5] [INFO] [path_planner_node]: Goal received: (5, 5, 2)
-[path_planner_node-5] [INFO] [path_planner_node]: Planning path...
-[path_planner_node-5] [INFO] [path_planner_node]: Path found. Publishing to /path
-[path_planner_node-5] [INFO] [path_planner_node]: Following path in Gazebo...
-[path_planner_node-5] [INFO] [path_planner_node]: Current Pose: (0.0, 0.0, 0.1), Next Waypoint: (1, 1, 1)
-[path_planner_node-5] [INFO] [path_planner_node]: Publishing velocity command: linear.x=0.5, angular.z=0.5
-...
-[path_planner_node-5] [INFO] [path_planner_node]: Reached waypoint (1, 1, 1)
-[path_planner_node-5] [INFO] [path_planner_node]: Current Pose: (1.0, 1.0, 1.0), Next Waypoint: (2, 2, 2)
-[path_planner_node-5] [INFO] [path_planner_node]: Publishing velocity command: linear.x=0.5, angular.z=0.5
-...
-[path_planner_node-5] [INFO] [path_planner_node]: Goal reached!```
+--- Launching path_planner ---
+[INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-11-24-20-48-21-968178-Arnavs-Laptop-444048
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [mavros_node-1]: process started with pid [444049]
+[INFO] [initial_pose_publisher-2]: process started with pid [444051]
+[INFO] [path_planner_node-3]: process started with pid [444053]
+[INFO] [path_follower-4]: process started with pid [444055]
+[INFO] [costmap_publisher-5]: process started with pid [444057]
+[INFO] [static_transform_publisher-6]: process started with pid [444059]
+[INFO] [static_transform_publisher-7]: process started with pid [444061]
+[INFO] [rviz2-8]: process started with pid [444063]
+[mavros_node-1] [INFO] [1763997502.183418631] [mavros.mavros_node]: Starting mavros_node container
+[mavros_node-1] [INFO] [1763997502.183624655] [mavros.mavros_node]: FCU URL: udp://:14540@127.0.0.1:14550
+[mavros_node-1] [INFO] [1763997502.235825647] [mavros.mavros_router]: link[1000] detected remote address 1.1
+[mavros_node-1] [INFO] [1763997504.978923274] [mavros.mavros]: CON: Got HEARTBEAT, connected. FCU: PX4 Autopilot
+[path_planner_node-3] [INFO] [1763997502.902364516] [path_planner_node]: Waiting for drone pose...
+[initial_pose_publisher-2] [INFO] [1763997503.649141662] [initial_pose_publisher]: Published initial pose to kickstart the simulation.
+[path_planner_node-3] [INFO] [1763997141.199386013] [path_planner_node]: Attempting to plan path from start: (0, 0, 0) to end: (15, -15, 5)
+```
 
 ## 🖼️ Visualizations
 
@@ -461,3 +453,44 @@ arnav@Arnavs-Laptop:~/drone_ws$ ros2 launch path_planner_pkg path_planner.launch
 
 ### Path
 ![Path](path.png)
+
+## 🚁 PX4 and MAVROS: The Backbone of Drone Control
+
+### What is PX4?
+
+PX4 is an open-source flight control software for drones and other unmanned vehicles. It is a complete autopilot solution, providing a flexible and powerful platform for a wide range of applications. PX4 is designed to be modular and extensible, with a layered architecture that separates the flight control system from the underlying hardware.
+
+**Key Features of PX4:**
+
+*   **Modular Architecture:** PX4 is composed of a set of independent modules that communicate with each other through a publish-subscribe messaging system. This makes it easy to add new features and functionality without affecting the rest of the system.
+*   **Flexible and Extensible:** PX4 can be easily adapted to different vehicle types and sensor configurations. It supports a wide range of hardware, including flight controllers, GPS receivers, and other sensors.
+*   **Advanced Flight Control:** PX4 includes a sophisticated flight control system with a variety of flight modes, including manual, position-controlled, and fully autonomous modes.
+*   **Simulation Support:** PX4 provides a powerful simulation environment that allows for testing and validation of the flight control software without the need for a physical drone.
+
+### What is MAVROS?
+
+MAVROS is a ROS package that provides a bridge between ROS and the MAVLink protocol. MAVLink is a lightweight messaging protocol for communicating with small unmanned vehicles. MAVROS allows ROS-enabled computers to communicate with vehicles running MAVLink-compatible autopilots, such as PX4.
+
+**Key Features of MAVROS:**
+
+*   **ROS to MAVLink Bridge:** MAVROS translates ROS messages into MAVLink messages and vice versa, allowing for seamless communication between ROS and the autopilot.
+*   **Plugin-based Architecture:** MAVROS is designed as a set of plugins, each of which provides a specific functionality, such as accessing sensor data, sending commands, or managing waypoints.
+*   **Support for a Wide Range of MAVLink Messages:** MAVROS supports a large number of MAVLink messages, providing access to a wealth of information from the autopilot.
+*   **Easy to Use:** MAVROS provides a simple and intuitive interface for interacting with the autopilot, making it easy to develop autonomous applications.
+
+## 📚 Libraries and Dependencies
+
+This project relies on a number of key libraries and dependencies to function correctly. The following is a detailed explanation of the most important ones:
+
+*   **ROS 2:** The core framework for the entire system. ROS 2 provides the communication infrastructure, build tools, and a rich ecosystem of packages for robotics development.
+*   **Gazebo:** A powerful 3D robotics simulator that allows for realistic simulation of the drone and its environment.
+*   **RViz:** A 3D visualization tool for ROS that is used to display the drone's state, the planned path, and the surrounding environment.
+*   **MAVROS:** The bridge between ROS 2 and the PX4 flight controller, enabling communication and control of the drone.
+*   **PX4 Autopilot:** The open-source flight control software that runs on the simulated drone.
+*   **ament_python:** The build system for Python-based ROS 2 packages.
+*   **colcon:** The build tool for ROS 2 workspaces.
+*   **launch:** The ROS 2 launch system, used to start and configure the various nodes in the system.
+*   **rclpy:** The Python client library for ROS 2.
+*   **nav_msgs:** A ROS 2 package that provides standard message types for navigation, such as `Path` and `Odometry`.
+*   **geometry_msgs:** A ROS 2 package that provides standard message types for geometric primitives, such as `PoseStamped` and `Twist`.
+*   **tf2_ros:** The ROS 2 library for transforming coordinates between different frames.
