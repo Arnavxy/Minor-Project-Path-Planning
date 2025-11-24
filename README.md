@@ -256,8 +256,7 @@ class PathFollower(Node):
 To launch the RViz simulation with dynamic obstacle avoidance, execute the following command:
 
 ```bash
-./run_planner.sh
-```
+./run_planner.sh```
 
 To visualize the output, open RViz2 in a new terminal:
 ```bash
