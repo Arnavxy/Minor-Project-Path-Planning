@@ -22,6 +22,14 @@ This ROS2 package provides a sophisticated high-level 3D path planning and navig
     - [Obstacles](#obstacles)
     - [Path](#path)
     - [RViz Visualization](#rviz-visualization)
+  - [🛠️ Debugging Journey: From PX4 to Simple Flight](#️-debugging-journey-from-px4-to-simple-flight)
+    - [The Initial Problem: Over-Engineering and Missing Dependencies](#the-initial-problem-over-engineering-and-missing-dependencies)
+    - [The Solution: A "Brain Transplant"](#the-solution-a-brain-transplant)
+    - [Step 1: Cleaning the Launch File](#step-1-cleaning-the-launch-file)
+    - [Step 2: Editing the Drone Model (The Brain Transplant)](#step-2-editing-the-drone-model-the-brain-transplant)
+    - [Step 3: The "Software Brain Transplant"](#step-3-the-software-brain-transplant)
+    - [Step 4: The Final Fix: Disabling the Mock Pose Publisher](#step-4-the-final-fix-disabling-the-mock-pose-publisher)
+
 
 ## 📜 Project Abstract
 
@@ -47,7 +55,7 @@ The system is designed as a collection of interconnected ROS2 nodes, each with a
 
 *   **`path_planner_node`**: This is the central node of the navigation system.
     *   **Subscriptions**:
-        *   `/amcl_pose` (`PoseWithCovarianceStamped`): Listens for the UAV's estimated pose from a localization system (e.g., AMCL). In the current prototype, this is provided by the `mock_pose_publisher`.
+        *   `/odom` (`Odometry`): Listens for the UAV's estimated pose from the Gazebo simulation.
         *   `/goal_pose` (`PoseStamped`): Receives the target destination for the UAV.
         *   `/battery_state` (`BatteryState`): Monitors the battery level to trigger fail-safe behaviors.
     *   **Publishers**:
@@ -56,11 +64,6 @@ The system is designed as a collection of interconnected ROS2 nodes, each with a
         *   `/visualization_marker` (`Marker`): Publishes markers to visualize the start and goal positions.
         *   `/obstacles` (`MarkerArray`): Publishes markers to visualize the static obstacles.
         *   `/scoring_grid` (`MarkerArray`): Publishes markers to visualize the 3D scoring grid.
-        *   PX4-related topics (`/offboard_control_mode`, `/trajectory_setpoint`, `/vehicle_command`): These are placeholders for future integration with the PX4 flight controller.
-
-*   **`mock_pose_publisher`**: A development tool used to simulate the UAV's movement and provide necessary inputs for testing the `path_planner_node`.
-    *   It simulates a UAV moving along a predefined 3D trajectory.
-    *   After a short delay, it publishes a goal pose to `/goal_pose` to initiate the path planning process. This simulates a mission command.
 
 *   **`static_transform_publisher`**: A standard ROS2 utility that publishes static coordinate frame transformations. This is essential for ensuring all components share a consistent understanding of the spatial relationships between different frames, such as `map`, `odom`, and `base_link`.
 
@@ -111,11 +114,11 @@ The following features represent the next steps in the development of this proje
     ```
 2.  **Navigate to the ROS2 workspace directory:**
     ```bash
-    cd Minor-Project-Path-Planning/drone_ws
+    cd Minor-Project-Path-Planning
     ```
 3.  **Build the specific package:**
     ```bash
-    colcon build --packages-select path_planner_pkg
+    colcon build
     ```
 4.  **Source the workspace's setup file:**
     ```bash
@@ -127,7 +130,7 @@ The following features represent the next steps in the development of this proje
 To launch the entire simulation, including the path planner and the mock pose publisher, execute the following command in your terminal:
 
 ```bash
-ros2 launch path_planner_pkg path_planner.launch.py
+./run_planner.sh
 ```
 
 To visualize the output, open RViz2 in a new terminal:
@@ -136,7 +139,7 @@ rviz2
 ```
 In RViz2, add the following topics to view the planner's output:
 *   Set the **Fixed Frame** to `map`.
-*   Add a `Pose` display and subscribe to the `/amcl_pose` topic.
+*   Add a `Pose` display and subscribe to the `/odom` topic.
 *   Add a `Path` display and subscribe to the `/path` topic.
 *   Add a `MarkerArray` display and subscribe to the `/obstacles` topic.
 *   Add a `MarkerArray` display and subscribe to the `/scoring_grid` topic.
@@ -206,5 +209,57 @@ This log shows the output of launching the system. Key events include:
 ![Path](path.png)
 
 ### RViz Visualization
-![RViz Visualization](rviz.png)
-![RViz Visualization 2](rviz2.png)
+![RViz Visualization](rviz.png)![RViz Visualization 2](rviz2.png)
+
+## 🛠️ Debugging Journey: From PX4 to Simple Flight
+
+This section provides a detailed account of the debugging process that was undertaken to get the drone simulation to a functional state.
+
+### The Initial Problem: Over-Engineering and Missing Dependencies
+
+The project was initially designed to use the PX4 Autopilot for a realistic simulation. This approach, while powerful, introduced a great deal of complexity. The primary issue was a missing dependency, `ros-humble-px4-sitl-rtps`, which proved difficult to install from source. This led to the realization that for a university-level path planning project, a full-blown autopilot simulation was unnecessary and a simpler approach would be more effective.
+
+### The Solution: A "Brain Transplant"
+
+The solution was to perform a "Brain Transplant" on the drone, replacing the complex PX4 "brain" with a much simpler ROS2-based controller. This involved two main steps: modifying the drone's physical properties in the simulation and updating the software to send the correct commands.
+
+### Step 1: Cleaning the Launch File
+
+The first step was to remove all references to PX4 and MAVROS from the main launch file, `path_planner.launch.py`. This ensured that the simulation would not attempt to launch any of the complex and unnecessary PX4 components.
+
+### Step 2: Editing the Drone Model (The Brain Transplant)
+
+The next step was to modify the drone's SDF file, `drone.sdf`, to remove the PX4-specific plugins and replace them with a simple planar movement plugin. This effectively turned the drone into a "hovercraft" that could be controlled with simple velocity commands.
+
+**Original (PX4-specific) Plugins:**
+```xml
+<plugin name="mavlink_interface" filename="libgazebo_mavlink_interface.so">
+    ...
+</plugin>
+```
+
+**New (Simple Flight) Plugin:**
+```xml
+<plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
+  <commandTopic>cmd_vel</commandTopic>
+  <odometryTopic>odom</odometryTopic>
+  <odometryFrame>odom</odometryFrame>
+  <odometryRate>20.0</odometryRate>
+  <robotBaseFrame>base_link</robotBaseFrame>
+</plugin>
+```
+
+### Step 3: The "Software Brain Transplant"
+
+With the drone's physical model simplified, the next step was to update the `path_planner_node.py` to send the correct commands. The original code was designed to communicate with a PX4 autopilot, using a complex state machine and PX4-specific messages. This was replaced with a much simpler logic that publishes `Twist` messages to the `/cmd_vel` topic.
+
+**Key Changes:**
+*   Removed all imports and publishers related to `px4_msgs`.
+*   Simplified the `DroneState` enum to `IDLE`, `PLANNING`, and `EXECUTING`.
+*   In the `EXECUTING` state, the code now calculates the direction to the next waypoint and publishes a `Twist` message to move the drone.
+
+### Step 4: The Final Fix: Disabling the Mock Pose Publisher
+
+The final issue was a conflict between the real pose data coming from the Gazebo simulation and a `mock_pose_publisher` that was being used for testing. This mock publisher was overriding the drone's actual position, causing it to believe it was at `(0,0,0)`.
+
+The solution was to comment out the `mock_pose_publisher` in the `path_planner.launch.py` file, which allowed the `path_planner_node` to receive the true position of the drone from Gazebo and finally begin moving.

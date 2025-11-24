@@ -8,3 +8,4 @@ src/px4_msgs/
 
 # Ignore VSCode files
 .vscode/
+reference_project/

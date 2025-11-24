@@ -50,11 +50,19 @@ class Node:
  
 def heuristic(a, b):
     return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)
- 
+
+def distance_to_obstacle(node, obstacles):
+    min_dist = float('inf')
+    for obs in obstacles:
+        dist = ((node.x - obs[0])**2 + (node.y - obs[1])**2 + (node.z - obs[2])**2)**0.5
+        if dist < min_dist:
+            min_dist = dist
+    return min_dist
+
 def a_star_search(grid, start, end):
     start_node = Node(start[0], start[1], start[2])
     end_node = Node(end[0], end[1], end[2])
- 
+  
     open_list = []
     closed_set = set()
 
@@ -69,21 +77,23 @@ def a_star_search(grid, start, end):
                 path.append((current_node.x, current_node.y, current_node.z))
                 current_node = current_node.parent
             return path[::-1]
- 
+  
         closed_set.add(current_node)
- 
+  
         for next_x, next_y, next_z in grid.get_neighbors(current_node):
             neighbor = Node(next_x, next_y, next_z, current_node)
             if neighbor in closed_set:
                 continue
- 
+  
+            dist_to_obs = distance_to_obstacle(neighbor, grid.obstacles)
+            obstacle_cost = 0
+            if dist_to_obs < 2.0:  # Add a high cost if the node is too close to an obstacle
+                obstacle_cost = 100 * (2.0 - dist_to_obs)
+
             neighbor.g = current_node.g + 1
             neighbor.h = heuristic(neighbor, end_node)
-            neighbor.f = neighbor.g + neighbor.h
+            neighbor.f = neighbor.g + neighbor.h + obstacle_cost
 
-            # This check is inefficient. A better way is to allow duplicates in the
-            # open list and let the heap property handle picking the best one.
-            # The `if neighbor in closed_set:` check prevents cycles.
             heapq.heappush(open_list, neighbor)
 
     return None

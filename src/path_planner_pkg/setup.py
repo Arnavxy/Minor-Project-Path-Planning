@@ -10,7 +10,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', ['launch/path_planner.launch.py']),
+        ('share/' + package_name + '/launch', ['launch/path_planner.launch.py', 'launch/px4_mavros.launch.py']),
+        ('share/' + package_name + '/worlds', ['worlds/drone_world.world', 'worlds/empty_world.world', 'worlds/obstacle_world.world', 'worlds/city_world.world']),
+        ('share/' + package_name + '/models/drone', ['models/drone/drone.sdf', 'models/drone/drone.xacro']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -27,6 +29,9 @@ setup(
         'console_scripts': [
             'path_planner_node = path_planner_pkg.path_planner_node:main',
             'mock_pose_publisher = path_planner_pkg.mock_pose_publisher:main',
+            'path_follower = path_planner_pkg.path_follower:main',
+            'costmap_publisher = path_planner_pkg.costmap_publisher:main',
+            'initial_pose_publisher = path_planner_pkg.initial_pose_publisher:main',
         ],
     },
 )
