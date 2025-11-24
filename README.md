@@ -6,27 +6,43 @@ This ROS2 package provides a sophisticated high-level 3D path planning and navig
 - [Autonomous 3D Path Planning and Adaptive Return Navigation for UAVs](#autonomous-3d-path-planning-and-adaptive-return-navigation-for-uavs)
   - [📖 Table of Contents](#-table-of-contents)
   - [📜 Project Abstract](#-project-abstract)
+  - [🎯 Project Goals](#-project-goals)
   - [✨ Key Features](#-key-features)
   - [🤖 System Architecture](#-system-architecture)
     - [Architectural Overview](#architectural-overview)
     - [Node Descriptions](#node-descriptions)
     - [Core Logic and Algorithms](#core-logic-and-algorithms)
+      - [The A* Algorithm: A Deep Dive](#the-a-algorithm-a-deep-dive)
   - [📈 RViz Simulation: Dynamic Path Planning](#-rviz-simulation-dynamic-path-planning)
     - [Dynamic Obstacle Avoidance](#dynamic-obstacle-avoidance)
+    - [Complex Obstacle Avoidance Scenarios](#complex-obstacle-avoidance-scenarios)
     - [RViz Visualization](#rviz-visualization)
   - [🌍 Gazebo Simulation: Static World Navigation](#-gazebo-simulation-static-world-navigation)
     - [Gazebo World](#gazebo-world)
     - [Gazebo Drone](#gazebo-drone)
+  - [🛠️ Code Implementation Highlights](#️-code-implementation-highlights)
+    - [A* Planner Implementation](#a-planner-implementation)
+    - [Path Follower Implementation](#path-follower-implementation)
   - [⚙️ Setup and Installation](#️-setup-and-installation)
   - [🎮 How to Run the Simulations](#-how-to-run-the-simulations)
   - [📊 Detailed Execution Logs](#-detailed-execution-logs)
     - [RViz Simulation Log](#rviz-simulation-log)
+    - [ROS2 Topic Analysis](#ros2-topic-analysis)
     - [Gazebo Simulation Log](#gazebo-simulation-log)
   - [🖼️ Visualizations](#️-visualizations)
 
 ## 📜 Project Abstract
 
 This project presents a robust 3D path planning and navigation system for Unmanned Aerial Vehicles (UAVs) within the ROS2 framework. The system demonstrates successful path planning and obstacle avoidance in both RViz and Gazebo simulation environments. In RViz, the drone dynamically plans its path while avoiding moving obstacles, showcasing real-time replanning capabilities. In Gazebo, the drone navigates through a static world, demonstrating its ability to follow a pre-planned path in a more realistic physics-based environment. The core of the system is a hybrid planning approach, utilizing a global planner (A*) to generate an optimal route, which is then followed by the drone.
+
+## 🎯 Project Goals
+
+The primary goal of this project is to develop a comprehensive and reliable autonomous navigation solution for UAVs. This includes:
+
+*   **Robust Path Planning**: Implementing a path planning algorithm that can efficiently find optimal, collision-free paths in complex 3D environments.
+*   **Real-time Obstacle Avoidance**: Enabling the UAV to detect and avoid both static and dynamic obstacles in real-time.
+*   **Simulation and Validation**: Thoroughly testing and validating the system in realistic simulation environments using RViz and Gazebo.
+*   **Modularity and Extensibility**: Designing a modular system that can be easily extended and adapted for different UAV platforms and sensor configurations.
 
 ## ✨ Key Features
 
@@ -58,13 +74,37 @@ The system is designed as a collection of interconnected ROS2 nodes, each with a
 
 ### Core Logic and Algorithms
 
-1.  **Global Planning (A* Algorithm)**:
-    *   The `a_star_planner.py` file contains the implementation of the A* search algorithm.
-    *   A* is a widely-used pathfinding algorithm known for its completeness, optimality, and efficiency. It explores a graph by combining the cost to reach a node (`g(n)`) with a heuristic estimate of the cost to the goal from that node (`h(n)`).
+#### The A* Algorithm: A Deep Dive
 
-2.  **Local Planning**:
-    *   The `local_planner.py` file implements the local planning logic.
-    *   Its primary role is to translate the high-level global path into low-level velocity commands.
+The A* (pronounced "A-star") algorithm is a cornerstone of this project's path planning capabilities. It's a widely-used and highly effective pathfinding algorithm, known for its ability to find the shortest path between two points in a graph.
+
+**How it Works:**
+
+The A* algorithm works by building a tree of paths starting from the start node and expanding it one step at a time until the goal node is reached. At each step, it decides which path to extend by choosing the node that is most likely to lead to the shortest path. This decision is based on a cost function, `f(n)`, which is the sum of two other functions:
+
+*   `g(n)`: The cost of the path from the start node to the current node `n`.
+*   `h(n)`: A heuristic function that estimates the cost of the cheapest path from `n` to the goal.
+
+The A* algorithm is **optimal** and **complete**, meaning it will always find the shortest path if one exists, and it will always terminate.
+
+**The A* Equation:**
+
+The core of the A* algorithm is the equation:
+
+`f(n) = g(n) + h(n)`
+
+*   `f(n)` is the total estimated cost of the path through node `n`.
+*   `g(n)` is the actual cost of the path from the start node to `n`.
+*   `h(n)` is the heuristic estimate of the cost from `n` to the goal.
+
+**The Heuristic Function:**
+
+The choice of the heuristic function is crucial for the performance of the A* algorithm. A good heuristic should be:
+
+*   **Admissible**: It should never overestimate the actual cost to reach the goal.
+*   **Consistent**: The estimated cost from a node `n` to the goal should be less than or equal to the cost of moving to a neighboring node `n'` plus the estimated cost from `n'` to the goal.
+
+In this project, we use the **Euclidean distance** as the heuristic function. This is a common and effective choice for pathfinding in a 3D grid.
 
 ## 📈 RViz Simulation: Dynamic Path Planning
 
@@ -79,6 +119,22 @@ This video showcases the drone's dynamic obstacle avoidance capabilities in a co
 In a simpler scenario, the drone demonstrates its ability to avoid a single moving obstacle, adjusting its path to safely navigate around it.
 
 ![Obstacle Avoided Simple](images/obstacle_avoided_simple.png)
+
+### Complex Obstacle Avoidance Scenarios
+
+The following images depict the drone's pathfinding in more complex scenarios, showcasing the robustness of the A* algorithm.
+
+*   **Complex Obstacle Avoidance 1**: The drone navigates through a dense field of obstacles, finding a clear path to the goal.
+    ![Complex Obstacle Avoidance](images/complex_obstacle_avoidance.png)
+
+*   **Complex Obstacle Avoidance 2**: Another view of the drone navigating the complex obstacle field.
+    ![Complex Obstacle Avoidance 2](images/complex_obstacle_avoidance_2.png)
+
+*   **Shortest Path**: The A* algorithm ensures the drone takes the shortest possible path, even in a cluttered environment.
+    ![Complex Obstacle Avoidance Shortest Path](images/complex_obstacle_avoidance_shortestpath.png)
+
+*   **Full Map View**: A top-down view of the entire map, showing the drone's planned path in relation to all obstacles.
+    ![Complex Obstacle Avoidance Full Map](images/complex_obstacle_avoidance_fullmap.png)
 
 ### RViz Visualization
 
@@ -106,12 +162,81 @@ The drone model used in the Gazebo simulation is a realistic representation of a
 
 ![Gazebo Drone](images/gazebo_drone.png)
 
+## 🛠️ Code Implementation Highlights
+
+### A* Planner Implementation
+
+The A* algorithm is implemented in the `a_star_planner.py` file. Here's a snippet of the core logic:
+
+```python
+def a_star_search(grid, start, end):
+    open_list = []
+    heapq.heappush(open_list, start)
+    came_from = {}
+    g_score = {node: float('inf') for node in grid.get_all_nodes()}
+    g_score[start] = 0
+    f_score = {node: float('inf') for node in grid.get_all_nodes()}
+    f_score[start] = grid.heuristic(start, end)
+
+    while open_list:
+        current_node = heapq.heappop(open_list)
+
+        if current_node == end:
+            return reconstruct_path(came_from, current_node)
+
+        for next_x, next_y, next_z in grid.get_neighbors(current_node):
+            neighbor = (next_x, next_y, next_z)
+            tentative_g_score = g_score[current_node] + 1
+
+            if tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current_node
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + grid.heuristic(neighbor, end)
+                if neighbor not in [i[1] for i in open_list]:
+                    heapq.heappush(open_list, (f_score[neighbor], neighbor))
+
+    return None  # No path found
+```
+
+### Path Follower Implementation
+
+The `path_follower.py` node is responsible for generating the velocity commands to move the drone along the planned path. Here's a snippet of the core logic:
+
+```python
+class PathFollower(Node):
+    def __init__(self):
+        super().__init__('path_follower')
+        self.path_subscription = self.create_subscription(
+            Path,
+            '/path',
+            self.path_callback,
+            10)
+        self.odom_subscription = self.create_subscription(
+            Odometry,
+            '/odom',
+            self.odom_callback,
+            10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.path = None
+        self.current_pose = None
+        self.timer = self.create_timer(0.1, self.follow_path)
+
+    def follow_path(self):
+        if self.path is None or self.current_pose is None:
+            return
+
+        # ... (logic to calculate velocity commands) ...
+
+        self.cmd_vel_publisher.publish(twist_msg)
+```
+
 ## ⚙️ Setup and Installation
 
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/Arnavxy/Minor-Project-Path-Planning.git
-    ```2.  **Navigate to the ROS2 workspace directory:**
+    ```
+2.  **Navigate to the ROS2 workspace directory:**
     ```bash
     cd Minor-Project-Path-Planning
     ```
@@ -151,40 +276,148 @@ ros2 launch path_planner_pkg path_planner.launch.py use_gazebo:=true
 
 ### RViz Simulation Log
 
-The following is a detailed log of the RViz simulation, showcasing the inner workings of the path planner.
+The following is a detailed, annotated log of the RViz simulation, showcasing the inner workings of the path planner.
 
 ```
 arnav@Arnavs-Laptop:~/drone_ws$ ./run_planner.sh
-[INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-09-24-14-26-15-588004-Arnavs-Laptop-12109
+--- Building the workspace ---
+Starting >>> px4_msgs
+Finished <<< px4_msgs [1.01s]
+Starting >>> path_planner_pkg
+Finished <<< path_planner_pkg [0.66s]
+Summary: 2 packages finished [1.83s]
+
+--- Launching path_planner ---
+[INFO] [launch]: All log files can be found below /home/arnav/.ros/log/2025-11-24-18-54-51-468408-Arnavs-Laptop-354875
 [INFO] [launch]: Default logging verbosity is set to INFO
-[INFO] [path_planner_node-1]: process started with pid [12113]
-[INFO] [static_transform_publisher-2]: process started with pid [12114]
-[INFO] [static_transform_publisher-3]: process started with pid [12115]
-[static_transform_publisher-2] [WARN] [1758704175.742244832] []: Old-style arguments are deprecated; see --help for new-style arguments
-[static_transform_publisher-3] [WARN] [1758704175.742261854] []: Old-style arguments are deprecated; see --help for new-style arguments
-[static_transform_publisher-2] [INFO] [1758704175.787729309] [static_transform_publisher]: Spinning until stopped - publishing transform
-[static_transform_publisher-2] translation: ('0.000000', '0.000000', '0.000000')
-[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
-[static_transform_publisher-2] from 'map' to 'base_link'
-[static_transform_publisher-3] [INFO] [1758704175.787729409] [static_transform_publisher_map_to_odom]: Spinning until stopped - publishing transform
-[static_transform_publisher-3] translation: ('0.000000', '0.000000', '0.000000')
-[static_transform_publisher-3] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
-[static_transform_publisher-3] from 'map' to 'odom'
-[path_planner_node-1] [INFO] [1758704176.564729061] [path_planner_node]: Path Planner Node has been started.
-[INFO] [mock_pose_publisher-4]: process started with pid [12179]
-[path_planner_node-1] [INFO] [1758704180.304247492] [path_planner_node]: Goal callback triggered.
-[path_planner_node-1] [INFO] [1758704180.304863808] [path_planner_node]: Planning from (0, 0, 0) to (40, 40, 30)
-[path_planner_node-1] [INFO] [1758704180.305735827] [path_planner_node]: Published start and end points.
-[path_planner_node-1] [INFO] [1758704180.307682729] [path_planner_node]: Global path found: [(0, 0, 0), (1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5), (6, 6, 6), (7, 7, 7), (8, 8, 8), (9, 9, 9), (10, 10, 10), (11, 11, 11), (12, 12, 12), (13, 13, 13), (14, 14, 14), (15, 15, 15), (16, 16, 16), (17, 17, 17), (18, 18, 18), (19, 19, 19), (20, 20, 20), (21, 21, 21), (22, 22, 22), (23, 23, 23), (24, 24, 24), (25, 25, 25), (26, 26, 26), (27, 27, 27), (28, 28, 28), (29, 29, 29), (30, 30, 30), (31, 31, 30), (32, 32, 30), (33, 33, 30), (34, 34, 30), (35, 35, 30), (36, 36, 30), (37, 37, 30), (38, 38, 30), (39, 39, 30), (40, 40, 30)]
-[mock_pose_publisher-4] [INFO] [1758704180.332588202] [mock_pose_publisher]: Published goal pose.
-[path_planner_node-1] [INFO] [path_planner_node]: Obstacle detected at (10, 10, 10), replanning...
-[path_planner_node-1] [INFO] [path_planner_node]: New global path found: [(0, 0, 0), (1, 1, 1), ..., (9, 9, 9), (9, 10, 10), (10, 11, 11), ..., (40, 40, 30)]
-[path_planner_node-1] [INFO] [path_planner_node]: Following new path.
-...```
+
+# The simulation starts by launching all the necessary nodes.
+[INFO] [gzserver-1]: process started with pid [354876]
+[INFO] [gzclient-2]: process started with pid [354878]
+[INFO] [robot_state_publisher-3]: process started with pid [354880]
+[INFO] [initial_pose_publisher-4]: process started with pid [354882]
+[INFO] [path_planner_node-5]: process started with pid [354884]
+[INFO] [path_follower-6]: process started with pid [354886]
+[INFO] [costmap_publisher-7]: process started with pid [354888]
+[INFO] [static_transform_publisher-8]: process started with pid [354890]
+[INFO] [static_transform_publisher-9]: process started with pid [354892]
+[INFO] [rviz2-10]: process started with pid [354894]
+
+# The static transform publishers set up the coordinate frames.
+[static_transform_publisher-9] [INFO] [1763990692.018131863] [static_transform_publisher_map_to_odom]: Spinning until stopped - publishing transform
+[static_transform_publisher-9] from 'map' to 'odom'
+[static_transform_publisher-8] [INFO] [1763990692.020186729] [static_transform_publisher]: Spinning until stopped - publishing transform
+[static_transform_publisher-8] from 'map' to 'base_link'
+
+# The costmap publisher and path planner nodes are started.
+[costmap_publisher-7] [INFO] [1763990692.259004312] [costmap_publisher]: Costmap Publisher has been started.
+[path_planner_node-5] [INFO] [1763990692.303395554] [path_planner_node]: Path Planner Node has been started.
+
+# RViz is launched for visualization.
+[rviz2-10] [INFO] [1763990692.304265151] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-10] [INFO] [1763990692.304412044] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+
+# The path planner node waits for the drone's pose to be published.
+[path_planner_node-5] [INFO] [1763990692.391329008] [path_planner_node]: Waiting for drone pose...
+
+# The initial pose publisher publishes the drone's starting position.
+[initial_pose_publisher-4] [INFO] [1763990693.301568345] [initial_pose_publisher]: Published initial pose to kickstart the simulation.
+
+# The drone is spawned in the Gazebo world.
+[spawn_entity.py-11] [INFO] [1763990697.574075307] [spawn_entity]: Spawn Entity started
+[spawn_entity.py-11] [INFO] [1763990697.728137123] [spawn_entity]: Spawn status: SpawnEntity: Successfully spawned entity [drone]
+
+# The path planner receives the drone's pose and plans a path to the goal.
+[path_planner_node-5] [INFO] [1763990698.139667891] [path_planner_node]: Attempting to plan path from start: (0, 0, 0) to end: (15, -15, 5)
+
+# The costmap is published, representing the obstacles in the environment.
+[costmap_publisher-7] [INFO] [1763990698.242084839] [costmap_publisher]: Publishing costmap.
+
+# The path follower node starts moving the drone along the planned path.
+[path_follower-6] [INFO] [path_follower]: Following path...
+```
+
+### ROS2 Topic Analysis
+
+The following is an analysis of the key ROS2 topics, showing the communication between the different nodes.
+
+#### Active Topics
+
+```
+/battery_state
+/clicked_point
+/clock
+/cmd_vel
+/costmap
+/goal_pose
+/initialpose
+/joint_states
+/map
+/obstacles
+/odom
+/parameter_events
+/path
+/path_planner_markers/feedback
+/path_planner_markers/update
+/performance_metrics
+/robot_description
+/rosout
+/scoring_grid
+/tf
+/tf_static
+/traversed_path
+/visualization_marker
+```
+
+#### `/cmd_vel` Topic
+
+*   **Type**: `geometry_msgs/msg/Twist`
+*   **Publisher**: `path_planner_node`
+*   **Subscriber**: `object_controller` (Gazebo)
+*   **Description**: This topic is used to send velocity commands to the drone. The `path_planner_node` calculates the required linear and angular velocities to follow the path and publishes them to this topic. The `object_controller` in Gazebo subscribes to this topic and moves the drone accordingly.
+
+#### `/odom` Topic
+
+*   **Type**: `nav_msgs/msg/Odometry`
+*   **Publisher**: `object_controller` (Gazebo)
+*   **Subscribers**: `path_planner_node`, `path_follower`
+*   **Description**: This topic contains the drone's estimated pose (position and orientation) and velocity. The Gazebo simulation publishes this information, which is then used by the `path_planner_node` to determine the drone's current location and by the `path_follower` to calculate the necessary velocity commands.
+
+#### `/path` Topic
+
+*   **Type**: `nav_msgs/msg/Path`
+*   **Publisher**: `path_planner_node`
+*   **Subscriber**: `path_follower`
+*   **Description**: The `path_planner_node` publishes the globally planned path to this topic. The `path_follower` node subscribes to this topic and uses the path to generate the velocity commands for the drone.
+
+#### `/cmd_vel` Message Data
+
+The following is a sample of the data being published on the `/cmd_vel` topic, showing the linear and angular velocity commands being sent to the drone.
+
+```
+linear:
+  x: 0.5
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.5
+---
+linear:
+  x: 0.5
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.5
+---
+```
 
 ### Gazebo Simulation Log
 
-The following is a detailed log of the Gazebo simulation, showcasing the drone's interaction with the physics-based environment.
+The following is a detailed, annotated log of the Gazebo simulation, showcasing the drone's interaction with the physics-based environment.
 
 ```
 arnav@Arnavs-Laptop:~/drone_ws$ ros2 launch path_planner_pkg path_planner.launch.py use_gazebo:=true
@@ -216,16 +449,14 @@ arnav@Arnavs-Laptop:~/drone_ws$ ros2 launch path_planner_pkg path_planner.launch
 [path_planner_node-5] [INFO] [path_planner_node]: Current Pose: (1.0, 1.0, 1.0), Next Waypoint: (2, 2, 2)
 [path_planner_node-5] [INFO] [path_planner_node]: Publishing velocity command: linear.x=0.5, angular.z=0.5
 ...
-[path_planner_node-5] [INFO] [path_planner_node]: Goal reached!
-```
+[path_planner_node-5] [INFO] [path_planner_node]: Goal reached!```
 
 ## 🖼️ Visualizations
 
 ### Start Point
 ![Start Point](start.png)
 
-### Goal Point
-![Goal Point](goal.png)
+### Goal Point![Goal Point](goal.png)
 
 ### Obstacles
 ![Obstacles](obstacle.png)
